@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalendereinträge</title>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+</head>
+<body>
+    <h1>Kalendereinträge</h1>
+    <ul id="kalender-liste"></ul>
+
+    <script>
+        $(document).ready(function() {
+            // Direkte Anfrage an die externe API (ohne Proxy)
+            $.ajax({
+                url: 'https://nak.churchtools.de/?q=churchcal/ajax&func=getCalPerCategory&calendar_ids[0]=1&category_ids[0]=1&category_ids[1]=3&category_ids[3]=5',
+                type: 'POST',
+                success: function(response) {
+                    // Überprüfe, ob die Antwort ein Objekt mit "data" ist
+                    if (response && response.status === "success" && response.data) {
+                        // Hole das "data" Objekt
+                        var dataObject = response.data;
+
+                        // Hier verarbeitest du die Antwort und fügst die Einträge in deine Liste ein
+                        var kalenderListe = $('#kalender-liste');
+
+                        // Iteriere durch die Eigenschaften des "data" Objekts
+                        Object.keys(dataObject).forEach(function(key) {
+                            // Hole das "bezeichnung" und "startdate" von jedem Eintrag
+                            var calEntry = dataObject[key];
+                            Object.keys(calEntry).forEach(function(dateKey) {
+                            
+                                var dateEntry = calEntry[dateKey];
+                                var bezeichnung = dateEntry.bezeichnung;
+                                var startdate = dateEntry.startdate;
+
+                                // Füge die Einträge in die Liste ein
+                                kalenderListe.append('<li>' + bezeichnung + ' - ' + startdate + '</li>');
+                            });
+                        });
+                    } else {
+                        console.error('Die Antwort entspricht nicht dem erwarteten Format:', response);
+                    }
+                },
+                error: function(error) {
+                    console.error('Fehler bei der Anfrage:', error);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
