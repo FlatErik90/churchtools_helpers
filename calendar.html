@@ -6,6 +6,36 @@
     <title>Kalendereinträge</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <style>
+        .bg-color-1 { /* Sonntagsschule */
+            background-color: #e3d620;
+        }
+        .bg-color-3 { /* Jugend */
+            background-color: #d9750b;
+            color: #ffffff;
+        }
+        .bg-color-5 { /* Chor */
+            background-color: #4fbf30;
+        }
+        .bg-color-8 { /* Konfa */
+            background-color: #e39220;
+        }
+        .bg-color-12 { /* Reli */
+            background-color: #e3a820;
+        }
+        .bg-color-27 { /* Besondere GD */
+            background-color: #2d49ad;
+            color: #ffffff;
+        }
+        .bg-color-30 { /* Gemeinde */
+            background-color: #8868d9;
+        }
+        .bg-color-33 { /* Instru */
+            background-color: #48cf8e;
+        }
+        
+        
+    </style>
 </head>
 <body>
     <div class="container">
@@ -17,7 +47,7 @@
         $(document).ready(function() {
             // Direkte Anfrage an die externe API (ohne Proxy)
             $.ajax({
-                url: 'https://nak.churchtools.de/?q=churchcal/ajax&func=getCalPerCategory&calendar_ids[0]=1&category_ids[0]=1&category_ids[1]=3&category_ids[3]=5',
+                url: 'https://nak.churchtools.de/?q=churchcal/ajax&func=getCalPerCategory&calendar_ids[0]=1&category_ids[0]=1&category_ids[1]=3&category_ids[2]=5&category_ids[3]=27&category_ids[4]=30&category_ids[5]=33&category_ids[6]=12&category_ids[7]=8',
                 type: 'POST',
                 success: function(response) {
                     // Überprüfe, ob die Antwort ein Objekt mit "data" ist
@@ -43,10 +73,10 @@
                                 // Prüfe, ob das Datum in den nächsten 14 Tagen liegt
                                 var today = new Date();
                                 var futureDate = new Date();
-                                futureDate.setDate(today.getDate() + 34);
+                                futureDate.setDate(today.getDate() + 30);
 
-                                if (startdate >= today && startdate <= futureDate) {
-                                    futureEntries.push({ 'bezeichnung': bezeichnung, 'startdate': startdate });
+                                if (startdate >= today && startdate <= futureDate && bezeichnung != "Gottesdienst") {
+                                    futureEntries.push({ 'bezeichnung': bezeichnung, 'startdate': startdate, 'index': key });
                                 }
                             });
                         });
@@ -59,7 +89,8 @@
                         // Füge die sortierten Einträge in die Liste ein
                         futureEntries.forEach(function(entry) {
                             var formattedDateString = entry.startdate.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-                            kalenderListe.append('<li class="list-group-item">' + entry.bezeichnung + ' - ' + formattedDateString + ' Uhr</li>');
+                            var bgColorClass = 'bg-color-' + (entry.index);
+                            kalenderListe.append('<li class="list-group-item ' + bgColorClass + '">' + entry.bezeichnung + ' - ' + formattedDateString + ' Uhr</li>');
                         });
                     } else {
                         console.error('Die Antwort entspricht nicht dem erwarteten Format:', response);
