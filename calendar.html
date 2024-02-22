@@ -28,23 +28,38 @@
                         // Hier verarbeitest du die Antwort und fügst die Einträge in deine Liste ein
                         var kalenderListe = $('#kalender-liste');
 
+                        // Array für die zukünftigen Einträge
+                        var futureEntries = [];
+
                         // Iteriere durch die Eigenschaften des "data" Objekts
                         Object.keys(dataObject).forEach(function(key) {
                             // Hole das "bezeichnung" und "startdate" von jedem Eintrag
                             var calEntry = dataObject[key];
                             Object.keys(calEntry).forEach(function(dateKey) {
-                            
                                 var dateEntry = calEntry[dateKey];
                                 var bezeichnung = dateEntry.bezeichnung;
-                                var startdate = dateEntry.startdate;
+                                var startdate = new Date(dateEntry.startdate);
 
-                                // Formatiere das Datum
-                                var formattedDate = new Date(startdate);
-                                var formattedDateString = formattedDate.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                                // Prüfe, ob das Datum in den nächsten 14 Tagen liegt
+                                var today = new Date();
+                                var futureDate = new Date();
+                                futureDate.setDate(today.getDate() + 34);
 
-                                // Füge die Einträge in die Liste ein
-                                kalenderListe.append('<li class="list-group-item">' + bezeichnung + ' - ' + formattedDateString + ' Uhr</li>');
+                                if (startdate >= today && startdate <= futureDate) {
+                                    futureEntries.push({ 'bezeichnung': bezeichnung, 'startdate': startdate });
+                                }
                             });
+                        });
+
+                        // Sortiere die Einträge nach Datum
+                        futureEntries.sort(function(a, b) {
+                            return a.startdate - b.startdate;
+                        });
+
+                        // Füge die sortierten Einträge in die Liste ein
+                        futureEntries.forEach(function(entry) {
+                            var formattedDateString = entry.startdate.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                            kalenderListe.append('<li class="list-group-item">' + entry.bezeichnung + ' - ' + formattedDateString + ' Uhr</li>');
                         });
                     } else {
                         console.error('Die Antwort entspricht nicht dem erwarteten Format:', response);
