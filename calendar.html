@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kalendereinträge</title>
+    <title>Termine</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <style>
@@ -39,7 +39,12 @@
 </head>
 <body>
     <div class="container">
-        <h1 class="mt-5">Kalendereinträge</h1>
+        <h1 class="mt-5">Termine Gemeinde Lüneburg</h1>
+        <div class="row mt-3">
+            <div class="col">&nbsp;</div>
+            <div class="col"><strong>Datum</strong></div>
+            <div class="col"><strong>Termin</strong></div>
+        </div>
         <ul id="kalender-liste" class="list-group mt-3"></ul>
     </div>
 
@@ -68,7 +73,9 @@
                             Object.keys(calEntry).forEach(function(dateKey) {
                                 var dateEntry = calEntry[dateKey];
                                 var bezeichnung = dateEntry.bezeichnung;
+                                var untertitel = dateEntry.ort; 
                                 var startdate = new Date(dateEntry.startdate);
+                                var enddate = new Date(dateEntry.enddate);
 
                                 // Prüfe, ob das Datum in den nächsten 14 Tagen liegt
                                 var today = new Date();
@@ -76,7 +83,7 @@
                                 futureDate.setDate(today.getDate() + 30);
 
                                 if (startdate >= today && startdate <= futureDate && bezeichnung != "Gottesdienst") {
-                                    futureEntries.push({ 'bezeichnung': bezeichnung, 'startdate': startdate, 'index': key });
+                                    futureEntries.push({ 'bezeichnung': bezeichnung, 'startdate': startdate, 'enddate': enddate, 'index': key, 'untertitel': untertitel });
                                 }
                             });
                         });
@@ -88,9 +95,23 @@
 
                         // Füge die sortierten Einträge in die Liste ein
                         futureEntries.forEach(function(entry) {
-                            var formattedDateString = entry.startdate.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                            var formattedDateString = entry.startdate.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                            var formattedTimeStartString = entry.startdate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+                            var formattedTimeEndString = entry.enddate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
                             var bgColorClass = 'bg-color-' + (entry.index);
-                            kalenderListe.append('<li class="list-group-item ' + bgColorClass + '">' + entry.bezeichnung + ' - ' + formattedDateString + ' Uhr</li>');
+                            var entry_untertitel = ''
+                            if (entry.untertitel != null)
+                            {
+                                entry_untertitel = '(' + entry.untertitel + ')' 
+                            }
+                            //kalenderListe.append('<li class="list-group-item ' + bgColorClass + '">' + entry.bezeichnung + ' - ' + formattedDateString + ' Uhr</li>');
+                            kalenderListe.append('<li class="list-group-item">' +
+                                '<div class="row">' +
+                                    '<div class="col ' + bgColorClass + '">&nbsp;</div>' +
+                                    '<div class="col">' + formattedDateString + '<br> ' + formattedTimeStartString + ' - ' + formattedTimeEndString + '  Uhr</div>' +
+                                    '<div class="col">' + entry.bezeichnung + ' ' + entry_untertitel + '</div>' +
+                                '</div>' +
+                            '</li>');
                         });
                     } else {
                         console.error('Die Antwort entspricht nicht dem erwarteten Format:', response);
