@@ -4,7 +4,7 @@ import pandas as pd
 import datetime
 import pytz
 
-from calendar_export.Home import create_client
+from Home import create_client
 from document_utils import dump_calendar
 
 st.set_page_config(layout="wide")
