@@ -3,11 +3,6 @@ import pandas as pd
 
 import datetime
 import pytz
-from spire.xls import *
-from spire.xls.common import *
-from typing import Any, Dict, Optional
-from urllib.parse import urljoin
-import requests
 
 from calendar_export.Home import create_client
 from document_utils import dump_calendar
@@ -82,11 +77,4 @@ if len(selected_calenders) > 0:
 
 save_as_excel = st.button(label="Excel exportieren")
 if save_as_excel and df is not None:
-    # Create a Workbook object
     dump_calendar(df)
-
-
-save_as_pdf = st.button(label="PDF exportieren")
-if save_as_pdf:
-    # Create a Workbook object
-    workbook = Workbook()
