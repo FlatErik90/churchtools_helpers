@@ -23,9 +23,8 @@ class Document:
 
     TIMEZONE = pytz.timezone("Europe/Berlin")
 
-    def __init__(self, filename):
-        self.filename = f"docs/{filename}"
-        self.writer = pd.ExcelWriter(self.filename, engine='xlsxwriter')
+    def __init__(self, buffer):
+        self.writer = pd.ExcelWriter(buffer, engine='xlsxwriter')
         self.workbook = self.writer.book
         pd.DataFrame().to_excel(self.writer, sheet_name='Tabelle 1')
         self.worksheet = self.writer.sheets["Tabelle 1"]
@@ -78,7 +77,7 @@ class Document:
 
 
 
-def dump_calendar(df):
+def dump_calendar(df, output_buffer):
     col_widths = [
         ("A", 20),
         ("B", 30),
@@ -92,7 +91,7 @@ def dump_calendar(df):
         ("J", 30),
     ]
 
-    doc = Document("Kalender.xlsx")
+    doc = Document(output_buffer)
     doc.write(df, col_widths, "Kalender")
 
 

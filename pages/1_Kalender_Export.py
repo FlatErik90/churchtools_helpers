@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import io
 
 import datetime
 import pytz
@@ -75,6 +76,7 @@ if len(selected_calenders) > 0:
     else:
         st.info("Keine Termine gefunden.")
 
-save_as_excel = st.button(label="Excel exportieren")
-if save_as_excel and df is not None:
-    dump_calendar(df)
+if df is not None:
+    output_buffer = io.BytesIO()
+    dump_calendar(df, output_buffer)
+    save_as_excel = st.download_button(label="Als Excel exportieren", data=output_buffer, file_name="Kalender.xlsx")
