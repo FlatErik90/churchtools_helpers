@@ -4,11 +4,14 @@ import io
 
 import datetime
 import pytz
+import locale
+locale.setlocale(locale.LC_ALL, "de_DE.utf8")
+
+
 
 from Home import create_client
 from document_utils import dump_calendar
 
-st.set_page_config(layout="wide")
 st.header("ChurchTools Kalender-Export")
 
 
@@ -20,8 +23,9 @@ calenders = [c for c in client.calendars.list() if not c.isPrivate and c.name !=
 selected_calenders = st.sidebar.multiselect(label="Kalender",
                                       placeholder="Wähle deine Kalender",
                                       options=calenders,
-                                      format_func=lambda x: x.name)
-days = st.sidebar.number_input(label="Zeitraum (Tage)", value=14)
+                                      format_func=lambda x: x.name,
+                                      default=calenders)
+days = st.sidebar.number_input(label="Zeitraum (Tage)", value=28)
 hide_regular_services = st.sidebar.checkbox(label="Normale Gottesdienste ausblenden", value=True)
 remove_duplicates = st.sidebar.checkbox(label="Doppelte Einträge ausblenden", value=True)
 
@@ -33,50 +37,51 @@ if len(selected_calenders) > 0:
     if hide_regular_services:
         appointments = [a for a in appointments if a.caption != "Gottesdienst" or a.note is not None]
     if len(appointments) > 0:
+        # print(appointments)
         fields = ['startDate', 'endDate',  'caption', 'calendar', 'information', 'note', 'allDay']
         data = [{fn: getattr(f, fn) for fn in fields} for f in appointments]
         for d in data:
             c = d["calendar"]
             d["calendar"] = c.name
             if not d["allDay"]:
-                d["startTime"] = d["startDate"].astimezone(timezone).strftime("%H:%M Uhr")
-                d["endTime"] = d["endDate"].astimezone(timezone).strftime("%H:%M Uhr")
-            d["startDate"] = d["startDate"].strftime("%d.%m.%Y")
-            d["endDate"] = d["endDate"].strftime("%d.%m.%Y")
+                d["startTime"] = d["startDate"].astimezone(timezone).strftime("%H:%M")
+                d["endTime"] = d["endDate"].astimezone(timezone).strftime("%H:%M")
+            d["weekDay"] = d["startDate"].strftime("%A")
+            d["startDate"] = d["startDate"].strftime("%d. %B")
+            d["endDate"] = d["endDate"].strftime("%d. %B")
             # print(str(d["startDate"]), str(d["endDate"]))
             if str(d["startDate"]) == str(d["endDate"]):
                 d["endDate"] = ""
 
+
         df = pd.DataFrame(data)
         if remove_duplicates:
             df.drop_duplicates(subset=["startDate", "startTime", "caption"], inplace=True)
-        st.dataframe(df,
-                     hide_index=True,
-                     column_config={"caption": "Bezeichnung",
-                                    "ort": "Untertitel",
-                                    "startDate": "Start (Datum)",
-                                    "startTime": "Start (Uhrzeit)",
-                                    "endDate": "Ende (Datum)",
-                                    "endTime": "Ende (Uhrzeit)",
-                                    "calendar": "Kalender",
-                                    "information": "Infos",
-                                    "note": "Notizen",
-                                    "allDay": "Ganztätig"},
-                     column_order=["startDate",
-                                   "startTime",
-                                   "endDate",
-                                   "endTime",
-                                   "caption",
-                                   "ort",
-                                   "calendar",
-                                   "information",
-                                   "note",
-                                   "allDay"])
-
+        column_map = { "weekDay": "Wochentag",
+                       "startDate": "Datum",
+                       "startTime": "Uhrzeit",
+                       "caption": "Termin",
+                       "note": "Untertitel",
+                        # "endDate": "Ende (Datum)",
+                        # "endTime": "Ende (Uhrzeit)",
+                        "calendar": "Kalender",
+                        # "information": "Infos",
+                        # "allDay": "Ganztätig"
+                       }
+        for key, value in column_map.items():
+            df[value] = df[key]
+            # df.drop(columns=[key])
+        for col in df.columns:
+            if col not in column_map.values():
+                df.drop(columns=[col], inplace=True)
+        print(list(column_map.values()))
+        df = df.loc[:, list(column_map.values())]
+        st.dataframe(df, hide_index=True)
     else:
         st.info("Keine Termine gefunden.")
 
 if df is not None:
     output_buffer = io.BytesIO()
     dump_calendar(df, output_buffer)
-    save_as_excel = st.download_button(label="Als Excel exportieren", data=output_buffer, file_name="Kalender.xlsx")
+    save_as_excel = st.download_button(label="Als Excelsheet exportieren", data=output_buffer, file_name="Kalender.xlsx")
+

@@ -13,14 +13,6 @@ class Document:
     DEFAULT_HEADER_COLOR = '#d4d4d4'
     DEFAULT_ROW_HEIGHT = 30
 
-    DEFAULT_WIDTH_LAST_NAME = 20
-    DEFAULT_WIDTH_FIRST_NAME = 14
-    DEFAULT_WIDTH_ADDRESS = 20
-    DEFAULT_WIDTH_PHONE = 16
-    DEFAULT_WIDTH_SEAT = 8
-    DEFAULT_WIDTH_ATTENDANCE = 5
-    DEFAULT_WIDTH_GROUP = 7
-
     TIMEZONE = pytz.timezone("Europe/Berlin")
 
     def __init__(self, buffer):
@@ -58,12 +50,12 @@ class Document:
     def _set_column(self, col, width):
         self.worksheet.set_column(f"{col}:{col}", width, self.default_format)
 
-    def write(self, df, col_widths, header, landscape=False):
-        df.to_excel(self.writer, sheet_name='Tabelle 1', index=False, header=False, startrow=1)
+    def write(self, df, col_widths, header, landscape=False, with_header=True):
+        df.to_excel(self.writer, sheet_name='Tabelle 1', index=False, header=False, startrow=0)
         for col, width in col_widths:
             self._set_column(col, width)
-        self._set_header_column(df)
-        self.worksheet.repeat_rows(0)
+        if with_header:
+            self._set_header_column(df)
         self.worksheet.set_header(header)
         if landscape:
             self.worksheet.set_landscape()
@@ -79,20 +71,33 @@ class Document:
 
 def dump_calendar(df, output_buffer):
     col_widths = [
-        ("A", 20),
-        ("B", 30),
-        ("C", 30),
-        ("D", 30),
-        ("E", 30),
-        ("F", 30),
-        ("G", 30),
-        ("H", 30),
-        ("I", 30),
-        ("J", 30),
+        ("A", 10),  # Wochentag
+        ("B", 15),  # Datum
+        ("C", 7),  # Uhrzeit
+        ("D", 40),  # Termin
+        ("E", 30),  # Untertitel?
+        ("F", 30),  # Kalender
     ]
 
     doc = Document(output_buffer)
-    doc.write(df, col_widths, "Kalender")
+    doc.write(df, col_widths, "Kalender", with_header=False)
+
+
+def dump_services(df, output_buffer):
+    col_widths = [
+        ("A", 7),  # Datum
+        ("B", 30),  # Termin
+        ("C", 30),  # Untertitel?
+        ("D", 30),  # Kalender
+        ("E", 30),  # Kalender
+        ("F", 30),  # Kalender
+        ("G", 30),  # Kalender
+        ("H", 30),  # Kalender
+        ("I", 30),  # Kalender
+    ]
+
+    doc = Document(output_buffer)
+    doc.write(df, col_widths, "Dienste", with_header=True)
 
 
 
