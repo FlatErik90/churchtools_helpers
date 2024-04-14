@@ -1,7 +1,6 @@
 import streamlit as st
 import churchtools as ct
 
-st.set_page_config(layout="wide")
 
 @st.cache_resource
 def create_client():
