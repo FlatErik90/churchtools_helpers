@@ -9,3 +9,6 @@ def create_client():
     client = ct.ChurchTools(base_url)
     client.login(username=st.secrets["username"], password=st.secrets["password"], remember_me=True)
     return client
+
+
+st.switch_page("pages/1_Kalender_Export.py")

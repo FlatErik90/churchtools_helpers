@@ -7,9 +7,15 @@ import io
 import locale
 locale.setlocale(locale.LC_ALL, "de_DE.utf8")
 
+st.set_page_config(layout="wide")
+
 from Home import create_client
 from document_utils import dump_services
 
+with st.sidebar:
+    nav = st.container(border=True)
+    nav.page_link("pages/1_Kalender_Export.py", label="Kalender Export")
+    nav.page_link("pages/2_Dienste_Export.py", label="Dienste Export")
 
 client = create_client()
 
