@@ -13,10 +13,10 @@ st.set_page_config(layout="wide")
 from Home import create_client
 from document_utils import dump_calendar
 
-with st.sidebar:
-    nav = st.container(border=True)
-    nav.page_link("pages/1_Kalender_Export.py", label="Kalender Export")
-    nav.page_link("pages/2_Dienste_Export.py", label="Dienste Export")
+# with st.sidebar:
+#     nav = st.container(border=True)
+#     nav.page_link("pages/1_Kalender_Export.py", label="Kalender Export")
+#     nav.page_link("pages/2_Dienste_Export.py", label="Dienste Export")
 
 st.header("ChurchTools Kalender-Export")
 

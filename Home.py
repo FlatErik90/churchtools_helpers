@@ -10,4 +10,7 @@ def create_client():
     return client
 
 
-st.switch_page("pages/1_Kalender_Export.py")
+nav = st.container(border=True)
+nav.page_link("pages/1_Kalender_Export.py", label="Kalender Export")
+nav.page_link("pages/2_Dienste_Export.py", label="Dienste Export")
+# st.switch_page("pages/1_Kalender_Export.py")
