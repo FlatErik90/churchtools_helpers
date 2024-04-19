@@ -71,7 +71,7 @@ class Document:
 
 def dump_calendar(df, output_buffer):
     col_widths = [
-        ("A", 10),  # Wochentag
+        ("A", 13),  # Wochentag
         ("B", 15),  # Datum
         ("C", 7),  # Uhrzeit
         ("D", 40),  # Termin

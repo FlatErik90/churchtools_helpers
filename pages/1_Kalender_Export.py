@@ -31,20 +31,26 @@ selected_calenders = st.sidebar.multiselect(label="Kalender",
                                       options=calenders,
                                       format_func=lambda x: x.name,
                                       default=calenders)
+
+start_end = st.sidebar.date_input("Zeitraum (Datum)", value=(datetime.datetime.now(), datetime.datetime.now() + datetime.timedelta(days=28)))
 days = st.sidebar.number_input(label="Zeitraum (Tage)", value=28)
+if len(start_end) == 1:
+    start = start_end[0]
+    end = start + datetime.timedelta(days=days)
+else:
+    start = start_end[0]
+    end = start_end[1]
 hide_regular_services = st.sidebar.checkbox(label="Normale Gottesdienste ausblenden", value=True)
 remove_duplicates = st.sidebar.checkbox(label="Doppelte Einträge ausblenden", value=True)
 
 df = None
 if len(selected_calenders) > 0:
-    appointments = client.calendars.appointments([c.id for c in selected_calenders],
-                                                 datetime.datetime.now(), #- datetime.timedelta(days=days),
-                                                 datetime.datetime.now() + datetime.timedelta(days=days))
+    appointments = client.calendars.appointments([c.id for c in selected_calenders], start, end)
     if hide_regular_services:
         appointments = [a for a in appointments if a.caption != "Gottesdienst" or a.note is not None]
     if len(appointments) > 0:
         # print(appointments)
-        fields = ['startDate', 'endDate',  'caption', 'calendar', 'information', 'note', 'allDay']
+        fields = ['startDate', 'endDate',  'caption', 'calendar', 'information', 'note', 'allDay', 'address']
         data = [{fn: getattr(f, fn) for fn in fields} for f in appointments]
         for d in data:
             c = d["calendar"]
@@ -58,6 +64,8 @@ if len(selected_calenders) > 0:
             # print(str(d["startDate"]), str(d["endDate"]))
             if str(d["startDate"]) == str(d["endDate"]):
                 d["endDate"] = ""
+            if d["address"] is not None:
+                d["place"] = d["address"].meetingAt
 
 
         df = pd.DataFrame(data)
@@ -68,9 +76,10 @@ if len(selected_calenders) > 0:
                        "startTime": "Uhrzeit",
                        "caption": "Termin",
                        "note": "Untertitel",
+                       "place": "Ort"
                         # "endDate": "Ende (Datum)",
                         # "endTime": "Ende (Uhrzeit)",
-                        "calendar": "Kalender",
+                        #"calendar": "Kalender",
                         # "information": "Infos",
                         # "allDay": "Ganztätig"
                        }
@@ -80,7 +89,7 @@ if len(selected_calenders) > 0:
         for col in df.columns:
             if col not in column_map.values():
                 df.drop(columns=[col], inplace=True)
-        print(list(column_map.values()))
+        # print(list(column_map.values()))
         df = df.loc[:, list(column_map.values())]
         st.dataframe(df, hide_index=True)
     else:
