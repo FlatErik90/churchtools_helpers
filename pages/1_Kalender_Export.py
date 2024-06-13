@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import io
+import numpy as np
 
 import datetime
 import pytz
@@ -45,6 +46,7 @@ remove_duplicates = st.sidebar.checkbox(label="Doppelte Einträge ausblenden", v
 hide_lessons = st.sidebar.checkbox(label="Unterrichte ausblenden", value=True)
 
 df = None
+highlight_rows = None
 if len(selected_calenders) > 0:
     appointments = client.calendars.appointments([c.id for c in selected_calenders], start, end)
     if hide_regular_services:
@@ -80,15 +82,15 @@ if len(selected_calenders) > 0:
                        "startTime": "Uhrzeit",
                        "caption": "Termin",
                        "note": "Untertitel",
-                       "place": "Ort"
+                       "place": "Ort",
                         # "endDate": "Ende (Datum)",
                         # "endTime": "Ende (Uhrzeit)",
-                        #"calendar": "Kalender",
+                        "calendar": "Kalender"
                         # "information": "Infos",
                         # "allDay": "Ganztätig"
                        }
         for key, value in column_map.items():
-            df[value] = df[key]
+            df[value] = df.get(key, None)
             # df.drop(columns=[key])
         for col in df.columns:
             if col not in column_map.values():
@@ -96,11 +98,29 @@ if len(selected_calenders) > 0:
         # print(list(column_map.values()))
         df = df.loc[:, list(column_map.values())]
         st.dataframe(df, hide_index=True)
+        highlight_rows = []
+        current_date = df.iloc[0].Datum
+        for i, entry in df.iterrows():
+            # if i == 0:
+            #     continue
+            # if entry.Datum == current_date:
+            #     df.at[i, "Datum"] = None
+            #     df.at[i, "Wochentag"] = None
+            current_date = entry.Datum
+            if not isinstance(entry.Untertitel, float) and entry.Untertitel is not None:
+                df.at[i, "Termin"] = df.at[i, "Termin"] + "\n" + df.at[i, "Untertitel"]
+            if not isinstance(entry.Ort, float) and entry.Ort is not None:
+                st.write(entry.Ort)
+                df.at[i, "Termin"] = df.at[i, "Termin"] + "\n" + df.at[i, "Ort"]
+            if entry.Kalender.startswith("Gottesdienste"):
+                highlight_rows.append(i)
+        # st.write(highlight_rows)
+        df.drop(labels=["Untertitel", "Ort", "Kalender"], axis="columns", inplace=True)
     else:
         st.info("Keine Termine gefunden.")
 
 if df is not None:
     output_buffer = io.BytesIO()
-    dump_calendar(df, output_buffer)
+    dump_calendar(df, "Juni", highlight_rows, output_buffer)
     save_as_excel = st.download_button(label="Als Excelsheet exportieren", data=output_buffer, file_name="Kalender.xlsx")
 
