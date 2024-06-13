@@ -42,12 +42,16 @@ else:
     end = start_end[1]
 hide_regular_services = st.sidebar.checkbox(label="Normale Gottesdienste ausblenden", value=True)
 remove_duplicates = st.sidebar.checkbox(label="Doppelte Einträge ausblenden", value=True)
+hide_lessons = st.sidebar.checkbox(label="Unterrichte ausblenden", value=True)
 
 df = None
 if len(selected_calenders) > 0:
     appointments = client.calendars.appointments([c.id for c in selected_calenders], start, end)
     if hide_regular_services:
         appointments = [a for a in appointments if a.caption != "Gottesdienst" or a.note is not None]
+    if hide_lessons:
+        appointments = [a for a in appointments if a.caption != "Sonntagsschule" and 
+                        a.caption != "Religionsunterricht" and a.caption != "Konfirmandenunterricht"]
     if len(appointments) > 0:
         # print(appointments)
         fields = ['startDate', 'endDate',  'caption', 'calendar', 'information', 'note', 'allDay', 'address']
