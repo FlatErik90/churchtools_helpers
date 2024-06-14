@@ -109,9 +109,9 @@ class Document:
             num_lines = len(caption_lines) + num_lines_to_wrap
             new_height = max(self.DEFAULT_MIN_ROW_HEIGHT, num_lines * self.DEFAULT_ROW_HEIGHT)
             # Set the row height, ensuring it is not less than the minimum height
-            self.worksheet.set_row(row_num + 1, new_height)  # +1 because the first row is the heade
+            self.worksheet.set_row(row_num + 1, new_height)  # +1 because the first row is the header
 
-    def write(self, df, col_widths, header, header_row, highlight_rows, landscape=False, with_header=True):
+    def write(self, df, df_preview, col_widths, header, header_row, preview_header_row, highlight_rows, landscape=False):
         df.to_excel(self.writer, sheet_name='Tabelle 1', index=False, header=False, startrow=1)
         self.worksheet.write(0, 0, header_row, self.header_format)
         self.worksheet.set_row(0, self.DEFAULT_HEADER_ROW_HEIGHT)
@@ -123,6 +123,23 @@ class Document:
             self.worksheet.set_landscape()
         print_area_col = chr(ord('@') + len(col_widths))
         print_area_row = len(df)
+        if df_preview is not None:
+            offset = len(df) + 2
+            self.worksheet.write(offset, 0, preview_header_row, self.header_format)
+            self.worksheet.set_row(offset, self.DEFAULT_HEADER_ROW_HEIGHT)
+            df_preview.to_excel(self.writer, sheet_name='Tabelle 1', index=False, header=False, startrow=offset+1)
+
+            for row_num, (index, row) in enumerate(df_preview.iterrows()):
+                caption = row["Termin"]
+                caption_lines = caption.split('\n')
+                num_lines_to_wrap = [len(l) > col_widths[-1][1] for l in caption_lines].count(True)
+                # adjust row heights
+                num_lines = len(caption_lines) + num_lines_to_wrap
+                new_height = max(self.DEFAULT_MIN_ROW_HEIGHT, num_lines * self.DEFAULT_ROW_HEIGHT)
+                # Set the row height, ensuring it is not less than the minimum height
+                self.worksheet.set_row(offset + row_num + 1, new_height)  # +1 because the first row is the header
+
+
         self.worksheet.print_area(f'A1:{print_area_col}{print_area_row}')  # TODO: do we need that?
         self.writer.close()
         # outdir = os.path.dirname(self.filename)
@@ -130,19 +147,16 @@ class Document:
         # time.sleep(0.1)
 
 
-def dump_calendar(df, header, highlight_rows, output_buffer):
+def dump_calendar(df, df_preview, header, preview_header, highlight_rows, output_buffer):
     col_widths = [
         ("A", 13),  # Wochentag
         ("B", 15),  # Datum
         ("C", 7),  # Uhrzeit
         ("D", 40),  # Termin
-        # ("E", 30),  # Untertitel?
-        # ("F", 30),  # Kalender
     ]
-    print(header)
 
     doc = Document(output_buffer)
-    doc.write(df, col_widths, "Kalender", header_row=header, highlight_rows=highlight_rows, with_header=False)
+    doc.write(df, df_preview, col_widths, "Kalender", header_row=header, preview_header_row=preview_header, highlight_rows=highlight_rows)
 
 
 def dump_services(df, output_buffer):
