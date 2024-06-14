@@ -110,7 +110,6 @@ if len(selected_calenders) > 0:
             if not isinstance(entry.Untertitel, float) and entry.Untertitel is not None:
                 df.at[i, "Termin"] = df.at[i, "Termin"] + "\n" + df.at[i, "Untertitel"]
             if not isinstance(entry.Ort, float) and entry.Ort is not None:
-                st.write(entry.Ort)
                 df.at[i, "Termin"] = df.at[i, "Termin"] + "\n" + df.at[i, "Ort"]
             if entry.Kalender.startswith("Gottesdienste"):
                 highlight_rows.append(i)
@@ -121,6 +120,6 @@ if len(selected_calenders) > 0:
 
 if df is not None:
     output_buffer = io.BytesIO()
-    dump_calendar(df, "Juni", highlight_rows, output_buffer)
+    dump_calendar(df, start.strftime("%B"), highlight_rows, output_buffer)
     save_as_excel = st.download_button(label="Als Excelsheet exportieren", data=output_buffer, file_name="Kalender.xlsx")
 
