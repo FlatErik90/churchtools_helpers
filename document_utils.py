@@ -56,7 +56,7 @@ class Document:
             'font_size': self.DEFAULT_HEADER_FONT_SIZE
         })
 
-        self.worksheet.set_default_row(self.DEFAULT_MIN_ROW_HEIGHT)
+        # self.worksheet.set_default_row(self.DEFAULT_MIN_ROW_HEIGHT)
 
     def _set_column(self, col, width):
         self.worksheet.set_column(f"{col}:{col}", width, self.default_format)
@@ -105,13 +105,7 @@ class Document:
                 else:
                     self.worksheet.write(row_num + 1, col_num, df.iloc[row_num, col_num], default_format)
 
-            # adjust row heights
-            num_lines = len(caption_lines) + num_lines_to_wrap
-            new_height = max(self.DEFAULT_MIN_ROW_HEIGHT, num_lines * self.DEFAULT_ROW_HEIGHT)
-            # Set the row height, ensuring it is not less than the minimum height
-            self.worksheet.set_row(row_num + 1, new_height)  # +1 because the first row is the header
-
-    def write(self, df, df_preview, col_widths, header, header_row, preview_header_row, highlight_rows, landscape=False):
+    def write(self, df, df_preview, col_widths, header, header_row, preview_header_row, highlight_rows):
         df.to_excel(self.writer, sheet_name='Tabelle 1', index=False, header=False, startrow=1)
         self.worksheet.write(0, 0, header_row, self.header_format)
         self.worksheet.set_row(0, self.DEFAULT_HEADER_ROW_HEIGHT)
@@ -119,10 +113,6 @@ class Document:
         for col, width in col_widths:
             self._set_column(col, width)
         self.worksheet.set_header(header)
-        if landscape:
-            self.worksheet.set_landscape()
-        print_area_col = chr(ord('@') + len(col_widths))
-        print_area_row = len(df)
         if df_preview is not None:
             offset = len(df) + 2
             self.worksheet.write(offset, 0, preview_header_row, self.header_format)
@@ -130,17 +120,12 @@ class Document:
             df_preview.to_excel(self.writer, sheet_name='Tabelle 1', index=False, header=False, startrow=offset+1)
 
             for row_num, (index, row) in enumerate(df_preview.iterrows()):
-                caption = row["Termin"]
-                caption_lines = caption.split('\n')
-                num_lines_to_wrap = [len(l) > col_widths[-1][1] for l in caption_lines].count(True)
-                # adjust row heights
-                num_lines = len(caption_lines) + num_lines_to_wrap
-                new_height = max(self.DEFAULT_MIN_ROW_HEIGHT, num_lines * self.DEFAULT_ROW_HEIGHT)
-                # Set the row height, ensuring it is not less than the minimum height
-                self.worksheet.set_row(offset + row_num + 1, new_height)  # +1 because the first row is the header
+                for col_num in range(len(df_preview.columns)):
+                    self.worksheet.write(offset + row_num + 1, col_num, df_preview.iloc[row_num, col_num], self.default_with_border_format)
 
-
-        self.worksheet.print_area(f'A1:{print_area_col}{print_area_row}')  # TODO: do we need that?
+        self.worksheet.set_header("")
+        self.worksheet.set_paper(11)  # A5
+        self.worksheet.fit_to_pages(1, 1)
         self.writer.close()
         # outdir = os.path.dirname(self.filename)
         # os.system(f"libreoffice --headless --convert-to pdf:calc_pdf_Export --outdir {outdir} {self.filename}")
